@@ -1,7 +1,8 @@
 # Todo API
 
 Small Spring Boot Todo REST API used as the backend for the companion REST Assured automation framework.
-The current repository uses an in-memory `ConcurrentHashMap`; persistence will be added later.
+
+Todos are persisted to a local H2 database using Spring Data JPA.
 
 ## Requirements
 
@@ -40,6 +41,6 @@ The API runs on `http://localhost:8081`.
 
 ## Current design
 
-`TodoController` handles HTTP concerns, `TodoService` owns validation/business logic, and `TodoRepository` owns in-memory storage. Generated IDs use an `AtomicInteger`.
+`TodoController` handles HTTP concerns, `TodoService` owns validation and business logic, and `TodoRepository` uses Spring Data JPA for database access.
 
-The next planned backend step is persistent database storage.
+Todos are persisted to a local H2 file database, so records survive application restarts.
