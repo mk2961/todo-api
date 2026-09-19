@@ -10,7 +10,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * REST controller for Todo CRUD and filtering operations.
+ * HTTP boundary for Todo CRUD and filtering operations.
+ *
+ * The controller translates HTTP requests/responses while TodoService owns
+ * validation and application behavior and TodoRepository owns persistence.
  */
 @RestController
 @RequestMapping("/todos")
@@ -54,9 +57,9 @@ public class TodoController {
     }
 
     /**
-     * Current PATCH implementation accepts the full Todo payload and uses the
-     * same replacement behavior as PUT. True partial-field PATCH semantics can
-     * be added later when the API introduces a dedicated patch request model.
+     * PATCH intentionally uses the same full-replacement behavior as PUT in
+     * this practice API. A production partial update would normally use a
+     * dedicated patch DTO and update only fields present in the request.
      */
     @PatchMapping("/{id}")
     public ResponseEntity<Todo> patchTodo(
@@ -75,7 +78,10 @@ public class TodoController {
                 : ResponseEntity.notFound().build();
     }
 
-    /** Converts domain validation failures into a stable HTTP 400 response. */
+    /**
+     * Centralizes domain-validation failures so clients receive a predictable
+     * HTTP 400 contract instead of framework-specific exception output.
+     */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleInvalidInput(
             IllegalArgumentException exception) {

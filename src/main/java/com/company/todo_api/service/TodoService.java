@@ -7,6 +7,12 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Application/service layer between the REST controller and persistence layer.
+ *
+ * Business validation belongs here rather than in the controller so the same
+ * rules are applied regardless of which HTTP endpoint invokes the operation.
+ */
 @Service
 public class TodoService {
 
@@ -17,10 +23,7 @@ public class TodoService {
     }
 
     public Todo createTodo(Todo todo) {
-        if (todo.getTitle() == null || todo.getTitle().isBlank()) {
-            throw new IllegalArgumentException("Todo title is required");
-        }
-
+        validateTitle(todo);
         return todoRepository.save(todo);
     }
 
@@ -42,20 +45,23 @@ public class TodoService {
     }
 
     public Optional<Todo> updateTodo(int id, Todo todo) {
-        if (todo.getTitle() == null || todo.getTitle().isBlank()) {
-            throw new IllegalArgumentException("Todo title is required");
-        }
+        validateTitle(todo);
 
         if (!todoRepository.existsById(id)) {
             return Optional.empty();
         }
 
+        // The path ID is authoritative so callers cannot update a different
+        // record by supplying another ID in the request body.
         todo.setId(id);
         return Optional.of(todoRepository.save(todo));
     }
 
+    /**
+     * Selects the repository query that matches the optional API filters.
+     * Keeping this decision here leaves the controller focused on HTTP concerns.
+     */
     public List<Todo> getTodos(Integer userId, Boolean completed) {
-
         if (userId != null && completed != null) {
             return todoRepository.findByUserIdAndCompleted(userId, completed);
         }
@@ -69,5 +75,11 @@ public class TodoService {
         }
 
         return todoRepository.findAll();
+    }
+
+    private void validateTitle(Todo todo) {
+        if (todo.getTitle() == null || todo.getTitle().isBlank()) {
+            throw new IllegalArgumentException("Todo title is required");
+        }
     }
 }
