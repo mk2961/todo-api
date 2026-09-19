@@ -33,7 +33,12 @@ public class TodoService {
     }
 
     public boolean deleteTodo(int id) {
-        return todoRepository.deleteById(id);
+        if (!todoRepository.existsById(id)) {
+            return false;
+        }
+
+        todoRepository.deleteById(id);
+        return true;
     }
 
     public Optional<Todo> updateTodo(int id, Todo todo) {
@@ -41,10 +46,28 @@ public class TodoService {
             throw new IllegalArgumentException("Todo title is required");
         }
 
-        return todoRepository.update(id, todo);
+        if (!todoRepository.existsById(id)) {
+            return Optional.empty();
+        }
+
+        todo.setId(id);
+        return Optional.of(todoRepository.save(todo));
     }
 
     public List<Todo> getTodos(Integer userId, Boolean completed) {
-        return todoRepository.findByFilters(userId, completed);
+
+        if (userId != null && completed != null) {
+            return todoRepository.findByUserIdAndCompleted(userId, completed);
+        }
+
+        if (userId != null) {
+            return todoRepository.findByUserId(userId);
+        }
+
+        if (completed != null) {
+            return todoRepository.findByCompleted(completed);
+        }
+
+        return todoRepository.findAll();
     }
 }
